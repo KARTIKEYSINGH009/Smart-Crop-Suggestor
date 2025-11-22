@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Crop Suggestor - Agricultural Intelligence Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+        }
+        
+        .header p {
+            font-size: 1.15em;
+            opacity: 0.95;
+            margin-bottom: 8px;
+        }
+        
+        .version-tag {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 18px;
+            padding: 45px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 28px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 650;
+            font-size: 0.98em;
+            letter-spacing: 0.3px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 13px 15px;
+            border: 2.5px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 0.98em;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.12);
+            background-color: white;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 35px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 30px;
+            font-size: 1.08em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 650;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-reset {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .btn-reset:hover {
+            background: #e8e8e8;
+            border-color: #d0d0d0;
+        }
+        
+        .btn-submit:active:not(:disabled) {
+            transform: translateY(-1px);
+        }
+        
+        .result-container {
+            display: none;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 18px;
+            margin-bottom: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.25);
+        }
+        
+        .crop-name {
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .confidence {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 25px;
+        }
+        
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+        
+        .score-item {
+            background: rgba(255,255,255,0.15);
+            padding: 18px;
+            border-radius: 12px;
+            border-left: 4px solid rgba(255,255,255,0.4);
+        }
+        
+        .score-label {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .score-value {
+            font-size: 1.6em;
+            font-weight: 700;
+        }
+        
+        .crop-details {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 25px;
+        }
+        
+        .detail-item {
+            margin-bottom: 18px;
+        }
+        
+        .detail-label {
+            font-weight: 650;
+            opacity: 0.8;
+            margin-bottom: 6px;
+            font-size: 0.95em;
+        }
+        
+        .detail-value {
+            font-size: 1.08em;
+            line-height: 1.5;
+        }
+        
+        .summary {
+            background: white;
+            color: #333;
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            line-height: 1.7;
+            font-size: 1.02em;
+            border-left: 5px solid #667eea;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+            border-left: 5px solid #c00;
+            font-weight: 500;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 25px;
+        }
+        
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+        }
+        
+        .info-box h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 0.98em;
+            line-height: 1.6;
+        }
+        
+        .metrics-explanation {
+            background: rgba(102, 126, 234, 0.08);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 12px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌾 Smart Crop Suggestor </h1>
+            <p>Professional Agricultural Intelligence Platform</p>
+        </div>
+        
+        <div class="card">
+            <div class="info-box">
+                <h3>🤖 Intelligent Analysis System</h3>
+                <p>This platform uses advanced ensemble machine learning with multi-factor agricultural analysis. Our system evaluates climate compatibility, soil conditions, profitability potential, and market viability to recommend the most suitable crop for your farm.</p>
+                <div class="metrics-explanation">
+                    <strong>Analysis Metrics:</strong> Suitability Score (Overall) • Climate Match • Soil Compatibility • Profitability Index • Model Confidence
+                </div>
+            </div>
+            
+<form id="recommendationForm">
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="state">Indian State *</label>
+            <select id="state" name="state" required>
+                <option value="Select your State">Select your State</option>
+                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                <option value="Assam">Assam</option>
+                <option value="Bihar">Bihar</option>
+                <option value="Gujarat">Gujarat</option>
+                <option value="Haryana">Haryana</option>
+                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                <option value="Jharkhand">Jharkhand</option>
+                <option value="Karnataka">Karnataka</option>
+                <option value="Kerala">Kerala</option>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Meghalaya">Meghalaya</option>
+                <option value="Odisha">Odisha</option>
+                <option value="Punjab">Punjab</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Tamil Nadu">Tamil Nadu</option>
+                <option value="Telangana">Telangana</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Uttarakhand">Uttarakhand</option>
+                <option value="West Bengal">West Bengal</option>
+                <option value="">Select Your State</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="city">City *</label>
+            <input type="text" id="city" name="city" placeholder="Enter city name" required>
+        </div>
+    </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="temperature">Temperature (°C) *</label>
+                        <input type="number" id="temperature" name="temperature" 
+                               min="10" max="40" step="0.5" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="humidity">Relative Humidity (%) *</label>
+                        <input type="number" id="humidity" name="humidity" 
+                               min="0" max="100" step="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="rainfall">Annual Rainfall (mm) *</label>
+                        <input type="number" id="rainfall" name="rainfall" 
+                               min="500" max="5000" step="50" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="soilType">Soil Type *</label>
+                        <select id="soilType" name="soil_type" required>
+                            <option value="">Select Soil Type</option>
+                            <option value="Loamy">Loamy (Ideal)</option>
+                            <option value="Clayey">Clayey</option>
+                            <option value="Sandy">Sandy</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="landType">Land Topography *</label>
+                        <select id="landType" name="land_type" required>
+                            <option value="">Select Land Type</option>
+                            <option value="Flat">Flat</option>
+                            <option value="Hilly">Hilly</option>
+                            <option value="Undulating">Undulating</option>
+                            <option value="Steep">Steep</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pH">Soil pH Level *</label>
+                        <input type="number" id="pH" name="pH" 
+                               min="4" max="9" step="0.1" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="incomeLevel">Target Income Level *</label>
+                        <select id="incomeLevel" name="income_level" required>
+                            <option value="">Select Income Goal</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Very_High">Very High</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-submit">🔍 Analyze & Get Recommendation</button>
+                    <button type="reset" class="btn-reset">Clear Form</button>
+                </div>
+            </form>
+            
+            <div class="error" id="errorMessage"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Performing advanced agricultural analysis...</p>
+            </div>
+        </div>
+        
+        <div class="result-container" id="resultContainer">
+            <div class="result-card">
+                <div class="crop-name" id="cropName"></div>
+                <div class="confidence">Model Confidence: <strong id="confidence"></strong></div>
+                
+                <div class="scores-grid">
+                    <div class="score-item">
+                        <div class="score-label">📊 Overall Suitability</div>
+                        <div class="score-value" id="suitabilityScore"></div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">🌡️ Climate Match</div>
+                        <div class="score-value" id="climateMatch"></div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">🌱 Soil Compatibility</div>
+                        <div class="score-value" id="soilCompatibility"></div>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-label">💰 Profitability Index</div>
+                        <div class="score-value" id="profitabilityIndex"></div>
+                    </div>
+                </div>
+                
+                <div class="crop-details">
+                    <div class="detail-item">
+                        <div class="detail-label">📝 Crop Description</div>
+                        <div class="detail-value" id="description"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">📅 Optimal Growing Season</div>
+                        <div class="detail-value" id="season"></div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">💵 Average Income Potential</div>
+                        <div class="detail-value" id="avgIncome"></div>
+                    </div>
+                </div>
+                
+                <div class="summary" id="summary"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const form = document.getElementById('recommendationForm');
+        const resultContainer = document.getElementById('resultContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const loading = document.getElementById('loading');
+        const stateSelect = document.getElementById('state');
+        
+        // Load states on page load
+        async function loadStates() {
+            try {
+                const response = await fetch('/api/states');
+                const states = await response.json();
+                states.sort();
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load states:', error);
+            }
+        }
+        
+        // Load states when page loads
+        document.addEventListener('DOMContentLoaded', loadStates);
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear previous results
+            resultContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            loading.style.display = 'block';
+            
+            // Collect form data
+            const formData = new FormData(form);
+            const data = {
+                state: formData.get('state'),
+                city: formData.get('city'),
+                temperature: parseFloat(formData.get('temperature')),
+                humidity: parseFloat(formData.get('humidity')),
+                rainfall: parseFloat(formData.get('rainfall')),
+                soil_type: formData.get('soil_type'),
+                land_type: formData.get('land_type'),
+                pH: parseFloat(formData.get('pH')),
+                income_level: formData.get('income_level')
+            };
+            
+            try {
+                const response = await fetch('/api/recommend', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                loading.style.display = 'none';
+                
+                if (response.ok) {
+                    displayResult(result);
+                } else {
+                    showError(result.error || 'Analysis failed. Please try again.');
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                showError('Network error: ' + error.message);
+            }
+        });
+        
+        function displayResult(result) {
+            document.getElementById('cropName').textContent = '🌽 ' + result.recommended_crop;
+            document.getElementById('confidence').textContent = result.confidence + '%';
+            document.getElementById('suitabilityScore').textContent = result.suitability_score + '%';
+            document.getElementById('climateMatch').textContent = result.climate_match + '%';
+            document.getElementById('soilCompatibility').textContent = result.soil_compatibility + '%';
+            document.getElementById('profitabilityIndex').textContent = result.profitability_index + '%';
+            document.getElementById('description').textContent = result.description;
+            document.getElementById('season').textContent = result.season;
+            
+            // Display farming income information
+            let incomeHTML = '';
+            if (result.income_details) {
+                const income = result.income_details;
+                incomeHTML = `
+                    <strong>Income Range (INR/acre):</strong> ${income.min_income_per_acre} - ${income.max_income_per_acre}<br/>
+                    <strong>Expected Annual Profit:</strong><br/>
+                    • 1 acre: ${income.annual_income_1acre}<br/>
+                    • 5 acres: ${income.annual_income_5acre}<br/>
+                    • 10 acres: ${income.annual_income_10acre}
+                `;
+            }
+            document.getElementById('avgIncome').innerHTML = incomeHTML || result.avg_income;
+            document.getElementById('summary').textContent = result.summary;
+            
+            resultContainer.style.display = 'block';
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = '❌ ' + message;
+            errorMessage.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
